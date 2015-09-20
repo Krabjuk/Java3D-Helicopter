@@ -19,12 +19,15 @@ public class MainWindow extends JFrame implements ActionListener, KeyListener
 	private Timer timer  = new Timer(100, this);
 	
 	private BranchGroup objRoot;
+	private Background background = new Background();
 	private Fuselage fuselage;
 	private Transform3D rotation = new Transform3D();
 	private Transform3D movement = new Transform3D();
 	private TransformGroup mainRotation = new TransformGroup();
 	private TransformGroup mainMovement = new TransformGroup();
 	
+	private BoundingSphere worldBounds = new BoundingSphere(new Point3d(0, 0, 0), 1000.0);
+		
 	private double mainRotorMinSpeed = 54.0;
 	private double mainRotorMaxSpeed = 108.0;
 	private double tailRotorMinSpeed = 81.0;
@@ -42,24 +45,32 @@ public class MainWindow extends JFrame implements ActionListener, KeyListener
 	private double rotateStep = 10.0;	// in degrees
 		
 	private float height;				// Y-Position
-	private float deep = -15.0f;		// Z-Position
+	private float deep = -25.0f;		// Z-Position
 	
 	MainWindow()
 	{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(800, 600);
+		setSize(1000, 800);
 				
-		setLayout(new BorderLayout());
+		setLayout(new BorderLayout(0, 0));
 		Canvas3D canvas3D = new Canvas3D(SimpleUniverse.getPreferredConfiguration());
 		canvas3D.addKeyListener(this);
 		add("Center", canvas3D);
 		
+		background.setColor(RGB_to_Color3f(109, 205, 237));
+		background.setApplicationBounds(worldBounds);
+				
 		createScene();
+		objRoot.addChild(background);
 		objRoot.compile();
-
+		
 		SimpleUniverse universum = new SimpleUniverse(canvas3D);
 		universum.getViewingPlatform().setNominalViewingTransform();
-		universum.addBranchGraph(objRoot);	
+		canvas3D.getView().setSceneAntialiasingEnable(true);
+		canvas3D.getView().setWindowEyepointPolicy(View.RELATIVE_TO_WINDOW);
+		canvas3D.getView().setWindowMovementPolicy(View.VIRTUAL_WORLD);
+	    canvas3D.getView().setWindowResizePolicy(View.VIRTUAL_WORLD);
+		universum.addBranchGraph(objRoot);
 	}
 	
 	void createScene()
@@ -67,8 +78,7 @@ public class MainWindow extends JFrame implements ActionListener, KeyListener
 		objRoot = new BranchGroup();
 		fuselage = new Fuselage();
 		
-		height = deep / 10;
-		movement.set(new Vector3f(0.0f, height, deep));
+		movement.set(new Vector3f(0.0f, 0.0f, deep));
 		mainMovement.setTransform(movement);
 				
 		objRoot.addChild(mainMovement);
@@ -78,13 +88,14 @@ public class MainWindow extends JFrame implements ActionListener, KeyListener
 		mainRotation.addChild(fuselage.getScene());
 		
 		// Light
-		AmbientLight ambLight = new AmbientLight(new Color3f(0.8f, 0.8f, 0.6f));
-		ambLight.setInfluencingBounds(new BoundingSphere(new Point3d(0, 0, 0), 200));
+		AmbientLight ambLight = new AmbientLight(new Color3f(Color.LIGHT_GRAY));
+		ambLight.setInfluencingBounds(worldBounds);
 		objRoot.addChild(ambLight);
 		
-		DirectionalLight dirLight = new DirectionalLight(new Color3f(0.8f, 0.8f, 0.6f),
-													  new Vector3f(0.0f, -7.0f, 0.0f));
-		dirLight.setInfluencingBounds(new BoundingSphere(new Point3d(0, 0, 0), 100));
+		DirectionalLight dirLight = new DirectionalLight();
+		dirLight.setInfluencingBounds(worldBounds);
+		dirLight.setColor(new Color3f(Color.LIGHT_GRAY));
+		dirLight.setEnable(true);
 		objRoot.addChild(dirLight);
 		
 		timer.start();
@@ -232,4 +243,9 @@ public class MainWindow extends JFrame implements ActionListener, KeyListener
 
 	@Override
 	public void keyTyped(KeyEvent e) {}
+	
+	public static Color3f RGB_to_Color3f(int red, int green, int blue)
+	{
+		return new Color3f(red / 255f, green / 255f, blue / 255f);
+	}
 }

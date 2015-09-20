@@ -3,7 +3,7 @@ public class Helicopter
 {
 	public static void main(String[] args)
 	{
-		new MainWindow().setVisible(true);
+		MainWindow mw = new MainWindow();
+		mw.setVisible(true);
 	}
-
 }

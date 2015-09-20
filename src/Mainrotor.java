@@ -44,14 +44,14 @@ public class Mainrotor
 		connector2Movement.addChild(connector2);
 		
 		// Blade 1
-		movement.set(new Vector3f(-2.45f, 0.25f, 0.06f));
+		movement.set(new Vector3f(-2.45f, 0.25f, -0.06f));
 		TransformGroup blade1Movement = new TransformGroup(movement);
 		blade1 = new Box(2.3f, 0.01f, 0.1f, primFlags, appearance);
 		objRoot.addChild(blade1Movement);
 		blade1Movement.addChild(blade1);
 		
 		// Blade 2
-		movement.set(new Vector3f(2.45f, 0.25f, -0.06f));
+		movement.set(new Vector3f(2.45f, 0.25f, 0.06f));
 		TransformGroup blade2Movement = new TransformGroup(movement);
 		blade2 = new Box(2.3f, 0.01f, 0.1f, primFlags, appearance);
 		objRoot.addChild(blade2Movement);

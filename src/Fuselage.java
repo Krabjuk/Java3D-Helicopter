@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.awt.event.*;
 
 import javax.media.j3d.*;
@@ -5,6 +6,7 @@ import javax.swing.Timer;
 import javax.vecmath.*;
 
 import com.sun.j3d.utils.geometry.*;
+//import com.sun.j3d.utils.image.*;
 
 public class Fuselage implements ActionListener
 {
@@ -16,7 +18,14 @@ public class Fuselage implements ActionListener
 	private BranchGroup objRoot = null;
 	private Transform3D rotation = new Transform3D();
 	private Transform3D movement = new Transform3D();
-	private Appearance appearance = new Sphere().getAppearance();//new Appearance();
+	
+	private BoundingSphere worldBounds = new BoundingSphere(new Point3d(0, 0, 0), 1000);
+	private Appearance appearance = new Appearance();
+	
+	//private TextureLoader textureLoader = new TextureLoader("C:/Development/eisenoberflaeche_512.jpg", null);
+	//private Texture texture;
+	private Material material = new Material();
+	private ColoringAttributes colorAttrib = new ColoringAttributes();
 	
 	private Sphere noseTip;
 	private Cylinder neckBottom;
@@ -43,14 +52,25 @@ public class Fuselage implements ActionListener
 	{
 		objRoot = new BranchGroup();
 		
-		frontLight = new SpotLight(new Color3f(1.5f, 1.0f, 1.0f),
+		colorAttrib.setColor(new Color3f(Color.BLACK));
+		appearance.setColoringAttributes(colorAttrib);
+		
+		material.setDiffuseColor(new Color3f(Color.DARK_GRAY));	// indirect lighting color
+		material.setSpecularColor(new Color3f(Color.DARK_GRAY));	// direct lighting color
+		material.setShininess(80.0f);	// intensity of direct lighting [1 - 128, default 64]
+		appearance.setMaterial(material);
+		
+		//texture = textureLoader.getTexture();
+		//appearance.setTexture(texture);
+				
+		frontLight = new SpotLight(new Color3f(1.5f, 1.5f, 0.0f),
 				new Point3f(0.0f, -0.6f, -2.25f),	// position
 				new Point3f(0, 0, 5),				// attenuation
 				new Vector3f(0.0f, 0.0f, -1.0f),	// direction
                 (float)Math.PI,						// spreadAngle in RAD
                 5.0f);								// concentration
 		frontLight.setCapability(SpotLight.ALLOW_STATE_WRITE);
-		frontLight.setInfluencingBounds(new BoundingSphere(new Point3d(0, 0, 0), 100));
+		frontLight.setInfluencingBounds(worldBounds);
 		objRoot.addChild(frontLight);
 		
 		SpotLight leftLight = new SpotLight(new Color3f(1.5f, 0.0f, 0.0f),
@@ -59,7 +79,7 @@ public class Fuselage implements ActionListener
 				new Vector3f(-1.0f, 0.0f, 0.0f),	// direction
 				(float)Math.PI,						// spreadAngle in RAD
 				1.0f);								// concentration
-		leftLight.setInfluencingBounds(new BoundingSphere(new Point3d(0, 0, 0), 0.2));
+		leftLight.setInfluencingBounds(worldBounds);
 		
 		SpotLight rightLight = new SpotLight(new Color3f(0.0f, 1.5f, 0.0f),
 				new Point3f(0.35f, -0.6f, 0.0f),	// position
@@ -67,7 +87,7 @@ public class Fuselage implements ActionListener
 				new Vector3f(1.0f, 0.0f, 0.0f),		// direction
 				(float)Math.PI,						// spreadAngle in RAD
 				1.0f);								// concentration
-		rightLight.setInfluencingBounds(new BoundingSphere(new Point3d(0, 0, 0), 0.2));
+		rightLight.setInfluencingBounds(worldBounds);
 		
 		// Nose tip
 		rotation.rotX(Math.PI / 2.0);
@@ -218,7 +238,7 @@ public class Fuselage implements ActionListener
 	{
 		mainRotorBladePosition += mainRotorSpeed;
 		if(mainRotorBladePosition > 360) mainRotorBladePosition -= 360;
-		rotation.rotY(-mainRotorBladePosition * 2 * Math.PI / 360);
+		rotation.rotY(mainRotorBladePosition * 2 * Math.PI / 360);
 		mainRotorRotation.setTransform(rotation);
 		
 		tailRotorBladePosition += tailRotorSpeed;
