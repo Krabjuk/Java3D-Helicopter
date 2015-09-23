@@ -1,16 +1,16 @@
 import java.awt.Color;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.media.j3d.*;
 import javax.swing.Timer;
 import javax.vecmath.*;
 
 import com.sun.j3d.utils.geometry.*;
-//import com.sun.j3d.utils.image.*;
 
 public class Fuselage implements ActionListener
 {
-	private Timer timer  = new Timer(50, this);
+	private Timer timer  = new Timer(10, this);
 	
 	private int objDivisions = 100;
 	private int primFlags = 1;
@@ -18,12 +18,10 @@ public class Fuselage implements ActionListener
 	private BranchGroup objRoot = null;
 	private Transform3D rotation = new Transform3D();
 	private Transform3D movement = new Transform3D();
-	
-	private BoundingSphere worldBounds = new BoundingSphere(new Point3d(0, 0, 0), 1000);
+	private TransformGroup mainRotation = new TransformGroup();
+		
 	private Appearance appearance = new Appearance();
 	
-	//private TextureLoader textureLoader = new TextureLoader("C:/Development/eisenoberflaeche_512.jpg", null);
-	//private Texture texture;
 	private Material material = new Material();
 	private ColoringAttributes colorAttrib = new ColoringAttributes();
 	
@@ -36,15 +34,15 @@ public class Fuselage implements ActionListener
 	private Sphere tailEnd;
 	private Box tailFin;
 	
+	private double mainRotationSpeed = 1.0;
+	private double mainRotationAngle = 0.0;
 	private Mainrotor mainrotor;
 	private TransformGroup mainRotorRotation = new TransformGroup();
-	private double mainRotorBladePosition = 0.0;
-	private double mainRotorSpeed = 0.0; 
 	
+	private double tailRotationSpeed = 1.0;
+	private double tailRotationAngle = 0.0;
 	private Tailrotor tailrotor;
 	private TransformGroup tailRotorRotation = new TransformGroup();
-	private double tailRotorBladePosition = 0.0;
-	private double tailRotorSpeed = 0.0;
 	
 	private SpotLight frontLight;
 		
@@ -59,19 +57,15 @@ public class Fuselage implements ActionListener
 		material.setSpecularColor(new Color3f(Color.DARK_GRAY));	// direct lighting color
 		material.setShininess(80.0f);	// intensity of direct lighting [1 - 128, default 64]
 		appearance.setMaterial(material);
-		
-		//texture = textureLoader.getTexture();
-		//appearance.setTexture(texture);
 				
 		frontLight = new SpotLight(new Color3f(1.5f, 1.5f, 0.0f),
-				new Point3f(0.0f, -0.6f, -2.25f),	// position
+				new Point3f(0.0f, -0.3f, 0.4f),		// position
 				new Point3f(0, 0, 5),				// attenuation
 				new Vector3f(0.0f, 0.0f, -1.0f),	// direction
                 (float)Math.PI,						// spreadAngle in RAD
                 5.0f);								// concentration
 		frontLight.setCapability(SpotLight.ALLOW_STATE_WRITE);
-		frontLight.setInfluencingBounds(worldBounds);
-		objRoot.addChild(frontLight);
+		frontLight.setInfluencingBounds(MainWindow.worldBounds);
 		
 		SpotLight leftLight = new SpotLight(new Color3f(1.5f, 0.0f, 0.0f),
 				new Point3f(-0.35f, -0.6f, 0.0f),	// position
@@ -79,7 +73,7 @@ public class Fuselage implements ActionListener
 				new Vector3f(-1.0f, 0.0f, 0.0f),	// direction
 				(float)Math.PI,						// spreadAngle in RAD
 				1.0f);								// concentration
-		leftLight.setInfluencingBounds(worldBounds);
+		leftLight.setInfluencingBounds(MainWindow.worldBounds);
 		
 		SpotLight rightLight = new SpotLight(new Color3f(0.0f, 1.5f, 0.0f),
 				new Point3f(0.35f, -0.6f, 0.0f),	// position
@@ -87,7 +81,7 @@ public class Fuselage implements ActionListener
 				new Vector3f(1.0f, 0.0f, 0.0f),		// direction
 				(float)Math.PI,						// spreadAngle in RAD
 				1.0f);								// concentration
-		rightLight.setInfluencingBounds(worldBounds);
+		rightLight.setInfluencingBounds(MainWindow.worldBounds);
 		
 		// Nose tip
 		rotation.rotX(Math.PI / 2.0);
@@ -95,9 +89,10 @@ public class Fuselage implements ActionListener
 		movement.set(new Vector3f(0.0f, -0.4f, -1.8f));
 		TransformGroup noseTipMovement = new TransformGroup(movement);
 		noseTip = new Sphere(0.4f, primFlags, objDivisions, appearance);
-		objRoot.addChild(noseTipMovement);
+		mainRotation.addChild(noseTipMovement);
 		noseTipMovement.addChild(noseTipRotation);
 		noseTipRotation.addChild(noseTip);
+		noseTipRotation.addChild(frontLight);
 		
 		// Neck bottom
 		rotation.rotX(Math.PI / 2.0);
@@ -105,7 +100,7 @@ public class Fuselage implements ActionListener
 		movement.set(new Vector3f(0.0f, -0.4f, -1.2f));
 		TransformGroup neckBottomMovement = new TransformGroup(movement);
 		neckBottom = new Cylinder(0.4f, 1.2f, primFlags, objDivisions, objDivisions, appearance);
-		objRoot.addChild(neckBottomMovement);
+		mainRotation.addChild(neckBottomMovement);
 		neckBottomMovement.addChild(neckBottomRotation);
 		neckBottomRotation.addChild(neckBottom);
 		
@@ -115,7 +110,7 @@ public class Fuselage implements ActionListener
 		movement.set(new Vector3f(0.0f, 0.0f, -1.0f));
 		TransformGroup neckTopMovement = new TransformGroup(movement);
 		neckTop = new Cone(0.8f, 0.6f, primFlags, objDivisions, objDivisions, appearance);
-		objRoot.addChild(neckTopMovement);
+		mainRotation.addChild(neckTopMovement);
 		neckTopMovement.addChild(neckTopRotation);
 		neckTopRotation.addChild(neckTop);
 		
@@ -125,7 +120,7 @@ public class Fuselage implements ActionListener
 		movement.set(new Vector3f(0.0f, 0.0f, 0.0f));
 		TransformGroup bodyMainMovement = new TransformGroup(movement);
 		bodyMain = new Cylinder(0.8f, 1.4f, primFlags, objDivisions, objDivisions, appearance);
-		objRoot.addChild(bodyMainMovement);
+		mainRotation.addChild(bodyMainMovement);
 		bodyMainMovement.addChild(bodyMainRotation);
 		bodyMainRotation.addChild(bodyMain);
 		
@@ -135,7 +130,7 @@ public class Fuselage implements ActionListener
 		movement.set(new Vector3f(0.0f, 0.0f, 1.1f));
 		TransformGroup tailFrontMovement = new TransformGroup(movement);
 		tailFront = new Cone(0.8f, 0.8f, primFlags, objDivisions, objDivisions, appearance);
-		objRoot.addChild(tailFrontMovement);
+		mainRotation.addChild(tailFrontMovement);
 		tailFrontMovement.addChild(tailFrontRotation);
 		tailFrontRotation.addChild(tailFront);
 		
@@ -145,7 +140,7 @@ public class Fuselage implements ActionListener
 		movement.set(new Vector3f(0.0f, 0.0f, 2.1f));
 		TransformGroup tailMiddleMovement = new TransformGroup(movement);
 		tailMiddle = new Cylinder(0.3f, 1.9f, primFlags, objDivisions, objDivisions, appearance);
-		objRoot.addChild(tailMiddleMovement);
+		mainRotation.addChild(tailMiddleMovement);
 		tailMiddleMovement.addChild(tailMiddleRotation);
 		tailMiddleRotation.addChild(tailMiddle);
 		tailMiddleRotation.addChild(leftLight);
@@ -157,7 +152,7 @@ public class Fuselage implements ActionListener
 		movement.set(new Vector3f(0.0f, 0.0f, 3.0f));
 		TransformGroup tailEndMovement = new TransformGroup(movement);
 		tailEnd = new Sphere(0.3f, primFlags, objDivisions, appearance);
-		objRoot.addChild(tailEndMovement);
+		mainRotation.addChild(tailEndMovement);
 		tailEndMovement.addChild(tailEndRotation);
 		tailEndRotation.addChild(tailEnd);
 		
@@ -167,7 +162,7 @@ public class Fuselage implements ActionListener
 		movement.set(new Vector3f(0.0f, 0.3f, 3.0f));
 		TransformGroup tailFinMovement = new TransformGroup(movement);
 		tailFin = new Box(0.04f, 0.55f, 0.3f, primFlags, appearance);
-		objRoot.addChild(tailFinMovement);
+		mainRotation.addChild(tailFinMovement);
 		tailFinMovement.addChild(tailFinRotation);
 		tailFinRotation.addChild(tailFin);
 		
@@ -176,7 +171,7 @@ public class Fuselage implements ActionListener
 		mainRotorRotation.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		movement.set(new Vector3f(0.0f, 0.8f, 0.0f));
 		TransformGroup mainRotorMovement = new TransformGroup(movement);
-		objRoot.addChild(mainRotorMovement);
+		mainRotation.addChild(mainRotorMovement);
 		mainRotorMovement.addChild(mainRotorRotation);
 		mainRotorRotation.addChild(mainrotor.getScene());
 		
@@ -185,11 +180,12 @@ public class Fuselage implements ActionListener
 		tailRotorRotation.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		movement.set(new Vector3f(-0.3f, 0.0f, 3.0f));
 		TransformGroup tailRotorMovement = new TransformGroup(movement);
-		objRoot.addChild(tailRotorMovement);
+		mainRotation.addChild(tailRotorMovement);
 		tailRotorMovement.addChild(tailRotorRotation);
 		tailRotorRotation.addChild(tailrotor.getScene());
 		
-		timer.start();
+		mainRotation.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+		objRoot.addChild(mainRotation);
 	}
 	
 	BranchGroup getScene()
@@ -197,24 +193,46 @@ public class Fuselage implements ActionListener
 		return objRoot;
 	}
 	
-	void setMainRotorSpeed(double deg_each_tick)
+	void rotate(double angleX, double angleZ)
 	{
-		mainRotorSpeed = deg_each_tick;
+		Transform3D rotationHelper = new Transform3D();
+		rotation.rotX(angleX);
+		rotationHelper.rotZ(angleZ);
+		rotation.mul(rotationHelper);
+		mainRotation.setTransform(rotation);
 	}
 	
-	double getMainRotorSpeed()
+	
+	
+	boolean startEngine()
 	{
-		return mainRotorSpeed;
+		if(!timer.isRunning()) timer.start();
+		boolean ret = false;
+		if(mainRotationSpeed < 47)
+		{
+			mainRotationSpeed += 0.1;
+		}
+		else ret = true;
+		if(tailRotationSpeed < 53)
+		{
+			tailRotationSpeed += 0.2;
+			ret = false;
+		}
+		return ret;
 	}
 	
-	void setTailRotorSpeed(double deg_each_tick)
+	boolean stopEngine()
 	{
-		tailRotorSpeed = deg_each_tick;
-	}
-	
-	double getTailRotorSpeed()
-	{
-		return tailRotorSpeed;
+		mainRotationSpeed *= 0.985;
+		tailRotationSpeed *= 0.98;
+		if(mainRotationSpeed < 0.1)
+		{
+			mainRotationSpeed = 1;
+			tailRotationSpeed = 1;
+			if(timer.isRunning()) timer.stop();
+			return false;
+		}
+		return true;
 	}
 	
 	boolean getStateFrontLight()
@@ -231,19 +249,16 @@ public class Fuselage implements ActionListener
 	{
 		frontLight.setEnable(false);
 	}
-	
-	
+
 	@Override
 	public void actionPerformed(ActionEvent e)
-	{
-		mainRotorBladePosition += mainRotorSpeed;
-		if(mainRotorBladePosition > 360) mainRotorBladePosition -= 360;
-		rotation.rotY(mainRotorBladePosition * 2 * Math.PI / 360);
+	{	
+		mainRotationAngle += mainRotationSpeed;
+		rotation.rotY(mainRotationAngle * 2 * Math.PI / 360);
 		mainRotorRotation.setTransform(rotation);
 		
-		tailRotorBladePosition += tailRotorSpeed;
-		if(tailRotorBladePosition > 360) tailRotorBladePosition -= 360;
-		rotation.rotX(tailRotorBladePosition * 2 * Math.PI / 360);
+		tailRotationAngle += tailRotationSpeed;
+		rotation.rotX(tailRotationAngle * 2 * Math.PI / 360);
 		tailRotorRotation.setTransform(rotation);
 	}
 }
