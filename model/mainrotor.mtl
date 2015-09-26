@@ -1,0 +1,31 @@
+# Blender MTL File: 'None'
+# Material Count: 3
+
+newmtl bell_platSG
+Ns 5.882353
+Ka 0.000000 0.000000 0.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.070000 0.070000 0.070000
+Ni 1.000000
+d 0.000000
+illum 2
+map_Kd .\prop.jpg
+
+newmtl bell_rotor_metal1SG
+Ns 0.000000
+Ka 0.000000 0.000000 0.000000
+Kd 0.352000 0.352000 0.352000
+Ks 0.250000 0.250000 0.250000
+Ni 1.000000
+d 0.000000
+illum 2
+
+newmtl bell_walSG
+Ns 5.882353
+Ka 0.000000 0.000000 0.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.155000 0.155000 0.155000
+Ni 1.000000
+d 0.000000
+illum 2
+map_Kd .\prophan.jpg
