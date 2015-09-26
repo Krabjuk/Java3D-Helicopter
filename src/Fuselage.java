@@ -215,13 +215,13 @@ public class Fuselage implements ActionListener
 	
 	private void increaseRotationSpeed()
 	{
-		if(mainRotationSpeed < 43)
+		if(mainRotationSpeed < 47)
 		{
 			mainRotationSpeed += 0.1;
 			flyState = false;
 		}
 		else flyState = true;
-		if(tailRotationSpeed < 57)
+		if(tailRotationSpeed < 53)
 		{
 			tailRotationSpeed += 0.2;
 			flyState = false;
