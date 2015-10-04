@@ -17,7 +17,6 @@ public class Fuselage implements ActionListener
 	
 	private BranchGroup objRoot = null;
 	private Transform3D rotation = new Transform3D();
-	//private Transform3D rotaHelp = new Transform3D();
 	private Transform3D movement = new Transform3D();
 	private TransformGroup mainRotation = new TransformGroup();
 		

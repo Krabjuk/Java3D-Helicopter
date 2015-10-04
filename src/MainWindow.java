@@ -7,6 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.Timer;
 import javax.vecmath.*;
 
+import com.sun.j3d.utils.geometry.Cylinder;
 import com.sun.j3d.utils.universe.*;
 
 public class MainWindow extends JFrame implements ActionListener, KeyListener
@@ -21,6 +22,7 @@ public class MainWindow extends JFrame implements ActionListener, KeyListener
 	private BranchGroup objRoot;
 	private Background background = new Background();
 	private Fuselage fuselage;
+	private surfaceTerrain chunk1, chunk2, chunk3, chunk4;
 	private Transform3D rotation = new Transform3D();
 	private Transform3D movement = new Transform3D();
 	private TransformGroup mainRotation = new TransformGroup();
@@ -37,7 +39,7 @@ public class MainWindow extends JFrame implements ActionListener, KeyListener
 	private double rotateZ = 0;
 	private double rotateStep = 2.5;	// in degrees
 		
-	private float height;				// Y-Position
+	private float height = 1.7f;		// Y-Position
 	private float heightStep = 0.1f;
 	
 	MainWindow()
@@ -76,12 +78,43 @@ public class MainWindow extends JFrame implements ActionListener, KeyListener
 	{
 		objRoot = new BranchGroup();
 		fuselage = new Fuselage();
+		int lod = 5;	// Level of Detail
+		int roughnessPercent = 20;
+		chunk1 = new surfaceTerrain(lod, roughnessPercent);	// vorne rechts ( x+, z+ )
+		chunk2 = new surfaceTerrain(lod, roughnessPercent);	// vorne links	( x-, z+ )
+		chunk3 = new surfaceTerrain(lod, roughnessPercent);	// hinten links	( x-, z- )
+		chunk4 = new surfaceTerrain(lod, roughnessPercent);	// hinten rechts( x+, z- )
+		
+		float divisor = (float)Math.pow(2, lod - 1);
+		
+		movement.set(new Vector3f(-chunk2.getSizeWidth() / divisor, 0.0f, 0.0f));
+		TransformGroup t2 = new TransformGroup();
+		t2.setTransform(movement);
+		t2.addChild(chunk2.getScene());
+		
+		movement.set(new Vector3f(-chunk3.getSizeWidth() / divisor, 0.0f, -chunk3.getSizeDeep() / divisor));
+		TransformGroup t3 = new TransformGroup();
+		t3.setTransform(movement);
+		t3.addChild(chunk3.getScene());
+		
+		movement.set(new Vector3f(0.0f, 0.0f, -chunk4.getSizeDeep() / divisor));
+		TransformGroup t4 = new TransformGroup();
+		t4.setTransform(movement);
+		t4.addChild(chunk4.getScene());
+				
+		objRoot.addChild(t2);
+		objRoot.addChild(t3);
+		objRoot.addChild(t4);
+		objRoot.addChild(chunk1.getScene());
 				
 		objRoot.addChild(mainMovement);
 		mainMovement.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		mainMovement.addChild(mainRotation);
 		mainRotation.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		mainRotation.addChild(fuselage.getScene());
+		
+		movement.set(new Vector3f(0.0f, height, 0.0f));
+		mainMovement.setTransform(movement);
 		
 		// Light
 		AmbientLight ambLight = new AmbientLight(new Color3f(Color.WHITE));
@@ -128,7 +161,7 @@ public class MainWindow extends JFrame implements ActionListener, KeyListener
 			// Height
 			if(pressed.contains('r')) height += heightStep;
 			if(pressed.contains('f')) height -= heightStep;
-			if(height < 0) { height = 0; System.out.println("on ground"); }
+			if(height < 0.7f) { height = 0.7f; System.out.println("on ground"); }
 			movement.set(new Vector3f(0.0f, height, 0.0f));
 		}
 		
