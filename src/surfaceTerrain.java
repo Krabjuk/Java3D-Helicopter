@@ -31,7 +31,7 @@ public class surfaceTerrain
 		float x = 0, z = 0;
 		for(int i = 0; i < divisions; ++i)
 		{
-			//System.out.println((int)((double)i / (double)divisions * 100) + "%");
+			System.out.print("create Chunk : " + (int)((double)(i + 1) / (double)divisions * 100) + "%\r");
 			for(int j = 0; j < divisions; ++j)
 			{				
 				x = 1.0f * i / divisions;
@@ -52,6 +52,7 @@ public class surfaceTerrain
 				objRoot.addChild(movement);
 			}
 		}
+		System.out.println();
 	}
 	
 	public BranchGroup getScene()

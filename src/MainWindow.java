@@ -1,14 +1,29 @@
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.HashSet;
+import java.util.Set;
 
-import javax.media.j3d.*;
+import javax.media.j3d.AmbientLight;
+import javax.media.j3d.Background;
+import javax.media.j3d.BoundingSphere;
+import javax.media.j3d.BranchGroup;
+import javax.media.j3d.Canvas3D;
+import javax.media.j3d.DirectionalLight;
+import javax.media.j3d.Transform3D;
+import javax.media.j3d.TransformGroup;
+import javax.media.j3d.View;
 import javax.swing.JFrame;
 import javax.swing.Timer;
-import javax.vecmath.*;
+import javax.vecmath.Color3f;
+import javax.vecmath.Point3d;
+import javax.vecmath.Vector3d;
+import javax.vecmath.Vector3f;
 
-import com.sun.j3d.utils.geometry.Cylinder;
-import com.sun.j3d.utils.universe.*;
+import com.sun.j3d.utils.universe.SimpleUniverse;
 
 public class MainWindow extends JFrame implements ActionListener, KeyListener
 {
@@ -78,8 +93,8 @@ public class MainWindow extends JFrame implements ActionListener, KeyListener
 	{
 		objRoot = new BranchGroup();
 		fuselage = new Fuselage();
-		int lod = 5;	// Level of Detail
-		int roughnessPercent = 20;
+		int lod = 6;	// Level of Detail
+		int roughnessPercent = 35;
 		chunk1 = new surfaceTerrain(lod, roughnessPercent);	// vorne rechts ( x+, z+ )
 		chunk2 = new surfaceTerrain(lod, roughnessPercent);	// vorne links	( x-, z+ )
 		chunk3 = new surfaceTerrain(lod, roughnessPercent);	// hinten links	( x-, z- )
