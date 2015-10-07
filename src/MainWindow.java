@@ -93,8 +93,8 @@ public class MainWindow extends JFrame implements ActionListener, KeyListener
 	{
 		objRoot = new BranchGroup();
 		fuselage = new Fuselage();
-		int lod = 6;	// Level of Detail
-		int roughnessPercent = 35;
+		int lod = 5;	// Level of Detail
+		int roughnessPercent = 80;
 		chunk1 = new surfaceTerrain(lod, roughnessPercent);	// vorne rechts ( x+, z+ )
 		chunk2 = new surfaceTerrain(lod, roughnessPercent);	// vorne links	( x-, z+ )
 		chunk3 = new surfaceTerrain(lod, roughnessPercent);	// hinten links	( x-, z- )
